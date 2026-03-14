@@ -6,12 +6,33 @@ if(!isset($_SESSION['logged_in'])){
     header('location:login.php');
     exit;
 }
-if(isset($_GET['logout'])){
+if(isset($_GET['logout']) && $_GET['logout'] == 1){
     if(isset($_SESSION['logged_in'])){
-        unset($_SESSION['logged_in']);
-        unset($_SESSION['user_email']);
-        unset($_SESSION['user_name']);
-        unset($_SESSION['quantity']); 
+        // Clear cart session data
+        unset($_SESSION['cart'], $_SESSION['total'], $_SESSION['quantity']);
+
+        // Optionally clear cart data from DB if exists
+        if(isset($_SESSION['user_id'])){
+            $user_id = (int) $_SESSION['user_id'];
+            if($stmt = $conn->prepare("DELETE FROM cart WHERE user_id = ?")){
+                $stmt->bind_param('i', $user_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+            if($stmt = $conn->prepare("DELETE FROM cart_items WHERE user_id = ?")){
+                $stmt->bind_param('i', $user_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+
+        unset($_SESSION['logged_in'], $_SESSION['user_email'], $_SESSION['user_name'], $_SESSION['user_id']);
+
+        session_regenerate_id(true);
+        session_unset();
+        session_destroy();
+        setcookie(session_name(), '', time() - 3600, '/');
+
         header('location:login.php');
         exit;
     }

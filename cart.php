@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-// Initialize the cart if not set
-if (!isset($_SESSION['cart'])) {
+// Initialize the cart if not set or if session has been reset
+if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
